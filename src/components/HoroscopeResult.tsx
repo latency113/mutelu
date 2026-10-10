@@ -187,19 +187,31 @@ export default function HoroscopeResult({
                     <span>{posInfo.titleTh.split('/')[0]}</span>
                   </span>
 
-                  {/* Card Icon & Roman */}
-                  <div
-                    className={`w-20 h-28 rounded-xl bg-gradient-to-br ${card.colorScheme.bgGradient} border border-amber-300/50 flex flex-col items-center justify-between p-2 shadow-inner my-2 ${
-                      isReversed ? 'rotate-180' : ''
-                    }`}
-                  >
-                    <span className="text-[10px] text-amber-300 font-mono">
+                  {/* Card Artwork Image & Roman */}
+                  <div className="relative w-28 h-44 sm:w-32 sm:h-48 rounded-xl border-2 border-amber-400/40 overflow-hidden shadow-lg bg-black/60 my-2 flex items-center justify-center">
+                    {card.image ? (
+                      <img
+                        src={card.image}
+                        alt={card.nameEn}
+                        className={`w-full h-full object-contain p-1 transition-transform duration-300 ${
+                          isReversed ? 'rotate-180' : ''
+                        }`}
+                        loading="eager"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-3xl">{card.symbol}</span>
+                      </div>
+                    )}
+
+                    <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/80 border border-amber-400/30 text-[9px] text-amber-300 font-mono">
                       {card.roman}
-                    </span>
-                    <span className="text-3xl">{card.symbol}</span>
-                    <span className="text-[9px] text-purple-200">
-                      ธาตุ{card.element}
-                    </span>
+                    </div>
+                    {card.suitTh && (
+                      <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-purple-950/90 border border-purple-500/40 text-[8px] text-purple-200">
+                        {card.suitTh}
+                      </div>
+                    )}
                   </div>
 
                   {/* Card Title & Orientation Badge */}

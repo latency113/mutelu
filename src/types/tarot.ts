@@ -1,4 +1,6 @@
 export type CardPosition = 'past' | 'present' | 'future';
+export type ArcanaType = 'major' | 'minor';
+export type CardSuit = 'major' | 'cups' | 'pentacles' | 'swords' | 'wands';
 
 export interface TarotCard {
   id: number;
@@ -6,6 +8,10 @@ export interface TarotCard {
   roman: string;
   nameEn: string;
   nameTh: string;
+  arcana: ArcanaType;
+  suit: CardSuit;
+  suitTh?: string;
+  image: string;
   element: 'ไฟ' | 'น้ำ' | 'ลม' | 'ดิน' | 'วิญญาณ';
   zodiacSign?: string;
   keywords: string[];

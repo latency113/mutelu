@@ -99,58 +99,65 @@ export default function TarotCardItem({
 
           {/* ================= CARD FRONT ================= */}
           <div
-            className={`absolute inset-0 w-full h-full rounded-2xl p-2.5 backface-hidden rotate-y-180 shadow-2xl bg-gradient-to-br ${card.colorScheme.bgGradient} border-2 ${card.colorScheme.border} flex flex-col items-center justify-between overflow-hidden`}
+            className={`absolute inset-0 w-full h-full rounded-2xl p-2 backface-hidden rotate-y-180 shadow-2xl bg-gradient-to-br ${card.colorScheme.bgGradient} border-2 ${card.colorScheme.border} flex flex-col items-center justify-between overflow-hidden`}
           >
             {/* Inner Border Frame */}
-            <div
-              className={`w-full h-full rounded-xl border border-amber-300/40 p-2.5 flex flex-col justify-between relative bg-black/30 backdrop-blur-sm ${
-                isReversed ? 'rotate-180' : ''
-              }`}
-            >
+            <div className="w-full h-full rounded-xl border border-amber-300/40 p-2 flex flex-col justify-between relative bg-black/40 backdrop-blur-sm overflow-hidden">
               {/* Card Top: Roman Numeral & Element */}
-              <div className="flex items-center justify-between text-xs font-serif text-amber-300 border-b border-amber-500/20 pb-1">
-                <span className="font-bold tracking-widest text-sm">
+              <div className="flex items-center justify-between text-xs font-serif text-amber-300 border-b border-amber-500/20 pb-1 z-10">
+                <span className="font-bold tracking-widest text-xs sm:text-sm">
                   {card.roman}
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-900/60 border border-purple-500/30 text-purple-200">
-                  ธาตุ{card.element}
-                </span>
-                <span className="text-sm">{card.symbol}</span>
-              </div>
-
-              {/* Card Illustration Artwork */}
-              <div className="relative my-auto flex flex-col items-center justify-center py-2">
-                {/* Glow ring */}
-                <div
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border border-amber-300/40 shadow-inner"
-                  style={{
-                    boxShadow: `0 0 25px ${card.colorScheme.glow}`,
-                  }}
-                >
-                  <span className="text-4xl sm:text-5xl filter drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
-                    {card.symbol}
+                <div className="flex items-center gap-1">
+                  {card.suitTh && (
+                    <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-purple-950/80 border border-amber-500/30 text-amber-200">
+                      {card.suitTh}
+                    </span>
+                  )}
+                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-purple-900/60 border border-purple-500/30 text-purple-200">
+                    ธาตุ{card.element}
                   </span>
                 </div>
-
-                {/* Keywords Chips */}
-                <div className="flex flex-wrap justify-center gap-1 mt-3 max-w-[90%]">
-                  {card.keywords.slice(0, 3).map((kw, i) => (
-                    <span
-                      key={i}
-                      className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md bg-purple-950/70 border border-purple-600/30 text-purple-200/90"
-                    >
-                      {kw}
-                    </span>
-                  ))}
-                </div>
               </div>
 
-              {/* Card Bottom: Titles */}
-              <div className="text-center pt-1 border-t border-amber-500/20">
+              {/* Card Illustration Artwork Image */}
+              <div className="relative flex-1 my-1.5 w-full flex items-center justify-center overflow-hidden rounded-lg bg-black/40 border border-amber-500/20 shadow-inner">
+                {card.image ? (
+                  <div
+                    className={`relative w-full h-full flex items-center justify-center p-1 transition-transform duration-500 ${
+                      isReversed ? 'rotate-180' : ''
+                    }`}
+                  >
+                    <img
+                      src={card.image}
+                      alt={card.nameEn}
+                      className="w-full h-full object-contain drop-shadow-md rounded"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border border-amber-300/40 shadow-inner"
+                    style={{
+                      boxShadow: `0 0 25px ${card.colorScheme.glow}`,
+                    }}
+                  >
+                    <span className="text-4xl sm:text-5xl filter drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
+                      {card.symbol}
+                    </span>
+                  </div>
+                )}
+
+                {/* Subtle vignette */}
+                <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/50 via-transparent to-black/20" />
+              </div>
+
+              {/* Card Bottom: Titles & Keywords */}
+              <div className="text-center pt-1 border-t border-amber-500/20 z-10 pb-4">
                 <div className="text-xs sm:text-sm font-bold text-amber-200 tracking-wide font-serif truncate">
                   {card.nameEn}
                 </div>
-                <div className="text-[11px] text-purple-200 font-medium truncate">
+                <div className="text-[10px] sm:text-[11px] text-purple-200 font-medium truncate">
                   {card.nameTh.split('(')[0]}
                 </div>
               </div>
@@ -159,20 +166,20 @@ export default function TarotCardItem({
             {/* Status Badge: Upright or Reversed */}
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
               <span
-                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-md ${
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wider uppercase shadow-lg ${
                   isReversed
-                    ? 'bg-rose-950/90 border border-rose-500/60 text-rose-300'
-                    : 'bg-emerald-950/90 border border-emerald-500/60 text-emerald-300'
+                    ? 'bg-rose-950/95 border border-rose-500/70 text-rose-300'
+                    : 'bg-emerald-950/95 border border-emerald-500/70 text-emerald-300'
                 }`}
               >
                 {isReversed ? (
                   <>
-                    <RotateCw className="w-2.5 h-2.5 rotate-180" />
+                    <RotateCw className="w-2.5 h-2.5 rotate-180 text-rose-400" />
                     ไพ่หัวกลับ
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-2.5 h-2.5" />
+                    <Sparkles className="w-2.5 h-2.5 text-emerald-400" />
                     ไพ่ตั้งตรง
                   </>
                 )}

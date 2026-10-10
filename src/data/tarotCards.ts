@@ -1,6 +1,9 @@
 import { TarotCard } from '@/types/tarot';
+import { MINOR_ARCANA } from './minorArcana';
 
-export const MAJOR_ARCANA: TarotCard[] = [
+export { MINOR_ARCANA };
+
+const RAW_MAJOR_ARCANA: Omit<TarotCard, 'arcana' | 'suit' | 'suitTh' | 'image'>[] = [
   {
     id: 0,
     number: 0,
@@ -442,6 +445,16 @@ export const MAJOR_ARCANA: TarotCard[] = [
     },
   },
 ];
+
+export const MAJOR_ARCANA: TarotCard[] = RAW_MAJOR_ARCANA.map((card) => ({
+  ...card,
+  arcana: 'major' as const,
+  suit: 'major' as const,
+  suitTh: 'ไพ่ชุดหลัก (Major Arcana)',
+  image: `/cards/${card.id}.jpg`,
+}));
+
+export const TAROT_DECK: TarotCard[] = [...MAJOR_ARCANA, ...MINOR_ARCANA];
 
 export const POSITION_INFO = {
   past: {
