@@ -1,69 +1,171 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import Header from '@/components/Header';
+import CosmicBackground from '@/components/CosmicBackground';
+import ConsultationForm from '@/components/ConsultationForm';
+import TarotDeckSpread from '@/components/TarotDeckSpread';
+import HoroscopeResult from '@/components/HoroscopeResult';
+import OracleLoading from '@/components/OracleLoading';
+import { DrawnCard, HoroscopeResponse } from '@/types/tarot';
+import { ZodiacInfo, getZodiacFromDate } from '@/lib/astrology';
+
+type Step = 'form' | 'spread' | 'reading';
 
 export default function Home() {
+  const [step, setStep] = useState<Step>('form');
+  const [birthDate, setBirthDate] = useState<string>('');
+  const [question, setQuestion] = useState<string>('');
+  const [zodiac, setZodiac] = useState<ZodiacInfo>(getZodiacFromDate(''));
+  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
+  const [result, setResult] = useState<HoroscopeResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Transition from form to deck spread
+  const handleProceedFromForm = (calculatedZodiac: ZodiacInfo) => {
+    setZodiac(calculatedZodiac);
+    setStep('spread');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Back to form
+  const handleBackToForm = () => {
+    setStep('form');
+  };
+
+  // Request reading from AI Backend
+  const handleProceedToReading = async (cards: DrawnCard[]) => {
+    setDrawnCards(cards);
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const payload = {
+        birthDate,
+        question,
+        zodiac: zodiac.signTh,
+        cards: cards.map((c) => ({
+          id: c.card.id,
+          nameEn: c.card.nameEn,
+          nameTh: c.card.nameTh,
+          isReversed: c.isReversed,
+          position: c.position,
+          positionLabel:
+            c.position === 'past'
+              ? 'อดีต/รากฐาน'
+              : c.position === 'present'
+              ? 'ปัจจุบัน/สถานการณ์'
+              : 'อนาคต/แนวโน้ม',
+        })),
+      };
+
+      const res = await fetch('/api/horoscope', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'ไม่สามารถรับคำทำนายได้ กรุณาลองใหม่อีกครั้ง');
+      }
+
+      const data: HoroscopeResponse = await res.json();
+      setResult(data);
+      setStep('reading');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: unknown) {
+      console.error('Reading error:', err);
+      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการขอคำทำนาย';
+      setErrorMsg(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Reset to start a new reading
+  const handleReset = () => {
+    setStep('form');
+    setDrawnCards([]);
+    setResult(null);
+    setErrorMsg(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="relative min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-purple-950 font-sans">
+      {/* Dynamic Cosmic Background */}
+      <CosmicBackground />
+
+      {/* Navigation Header */}
+      <Header onReset={handleReset} hasResult={step === 'reading'} />
+
+      {/* Main Content Viewport */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-12 relative z-10 flex flex-col items-center justify-center">
+        {/* Error notification if any */}
+        {errorMsg && (
+          <div className="w-full max-w-xl mb-6 p-4 rounded-2xl bg-red-950/70 border border-red-500/50 text-red-200 text-xs sm:text-sm text-center shadow-lg">
+            ⚠️ {errorMsg}
+          </div>
+        )}
+
+        {/* Loading View */}
+        {isLoading ? (
+          <OracleLoading />
+        ) : (
+          <>
+            {/* Step 1: Consultation Setup Form */}
+            {step === 'form' && (
+              <ConsultationForm
+                birthDate={birthDate}
+                setBirthDate={setBirthDate}
+                question={question}
+                setQuestion={setQuestion}
+                onProceed={handleProceedFromForm}
+              />
+            )}
+
+            {/* Step 2: Tarot Deck Spread & 3D Interactive Draw */}
+            {step === 'spread' && (
+              <TarotDeckSpread
+                question={question}
+                birthDate={birthDate}
+                zodiacSign={zodiac.signTh}
+                onBackToForm={handleBackToForm}
+                onProceedToReading={handleProceedToReading}
+                isLoading={isLoading}
+              />
+            )}
+
+            {/* Step 3: Result & AI Horoscope Reading */}
+            {step === 'reading' && result && (
+              <HoroscopeResult
+                cards={drawnCards}
+                result={result}
+                question={question}
+                birthDate={birthDate}
+                zodiac={zodiac}
+                onReset={handleReset}
+              />
+            )}
+          </>
+        )}
+      </main>
+
+      {/* Sacred Footer */}
+      <footer className="relative z-10 w-full border-t border-purple-900/30 py-6 text-center text-xs text-purple-300/60 bg-[#090417]/80 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-4 space-y-2">
+          <p className="flex items-center justify-center gap-2">
+            <span>🔮 MUTELU TAROT</span>
+            <span>•</span>
+            <span>ศาสตร์ไพ่ยิปซีโบราณผสานพลัง Gemini 3.1 Flash Lite</span>
+          </p>
+          <p className="text-[11px] text-purple-400/50">
+            โปรดใช้วิจารณญาณในการรับคำทำนาย • ลิขสิทธิ์ความมงคลสำหรับสายมูทุกคน ✨
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </footer>
     </div>
   );
 }
