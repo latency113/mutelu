@@ -159,7 +159,9 @@ export default function Home() {
           <p className="flex items-center justify-center gap-2">
             <span>🔮 MUTELU TAROT</span>
             <span>•</span>
-            <span>ศาสตร์ไพ่ยิปซีโบราณผสานพลัง Gemini 3.1 Flash Lite</span>
+            <span>ศาสตร์ไพ่ยิปซีโบราณผสานพลัง</span>
+            <span>developed by khan</span>
+            <span>contact : ig khan.nn03</span>
           </p>
           <p className="text-[11px] text-purple-400/50">
             โปรดใช้วิจารณญาณในการรับคำทำนาย • ลิขสิทธิ์ความมงคลสำหรับสายมูทุกคน ✨

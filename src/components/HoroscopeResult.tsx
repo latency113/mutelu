@@ -236,7 +236,7 @@ export default function HoroscopeResult({
         <div className="relative p-6 sm:p-8 rounded-2xl bg-purple-950/70 border border-amber-500/30 shadow-xl space-y-4">
           <div className="flex items-center gap-2 text-amber-300 font-semibold text-sm border-b border-purple-800/50 pb-2">
             <Sparkles className="w-4 h-4 text-amber-300" />
-            <span>คำทำนายจาก แม่หมอ AI (Gemini Flash Lite)</span>
+            <span>คำทำนายจาก แม่หมอ AI</span>
           </div>
 
           <div className="space-y-3 text-sm sm:text-base text-purple-100 leading-relaxed font-normal">
