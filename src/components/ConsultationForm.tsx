@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useId } from 'react';
+import { useState, useId, useMemo } from 'react';
 import {
   Calendar,
   Sparkles,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { getZodiacFromDate, SUGGESTED_QUESTIONS, ZodiacInfo } from '@/lib/astrology';
 import { soundManager } from '@/lib/sound';
+import SelectDropdown from './SelectDropdown';
 
 interface ConsultationFormProps {
   birthDate: string;
@@ -70,17 +71,44 @@ export default function ConsultationForm({
     String(i + 1).padStart(2, '0')
   );
 
+  const dayOptions = useMemo(() => {
+    return days.map((d) => ({
+      value: d,
+      label: `วันที่ ${parseInt(d, 10)}`,
+    }));
+  }, [days]);
+
+  const monthOptions = useMemo(() => {
+    return THAI_MONTHS.map((m) => ({
+      value: m.value,
+      label: m.label,
+    }));
+  }, []);
+
+  const yearOptions = useMemo(() => {
+    return years.map((y) => ({
+      value: String(y),
+      label: `พ.ศ. ${y + 543} (${y})`,
+    }));
+  }, [years]);
+
   const handleDateChange = (
     newDay: string,
     newMonth: string,
     newYear: string
   ) => {
-    setSelectedDay(newDay);
+    const maxDays = getDaysInMonth(newYear, newMonth);
+    let validDay = newDay;
+    if (validDay && parseInt(validDay, 10) > maxDays) {
+      validDay = String(maxDays).padStart(2, '0');
+    }
+
+    setSelectedDay(validDay);
     setSelectedMonth(newMonth);
     setSelectedYear(newYear);
 
-    if (newDay && newMonth && newYear) {
-      const formatted = `${newYear}-${newMonth}-${newDay}`;
+    if (validDay && newMonth && newYear) {
+      const formatted = `${newYear}-${newMonth}-${validDay}`;
       setBirthDate(formatted);
       if (error) setError(null);
     }
@@ -165,79 +193,37 @@ export default function ConsultationForm({
             {/* 3 Select dropdowns for Day, Month, Year */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {/* Day Select */}
-              <div className="relative">
-                <select
-                  value={selectedDay}
-                  onChange={(e) =>
-                    handleDateChange(e.target.value, selectedMonth, selectedYear)
-                  }
-                  className="w-full px-3 py-3.5 rounded-xl bg-purple-950/70 border border-purple-700/50 text-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all text-xs sm:text-sm font-medium [color-scheme:dark] cursor-pointer appearance-none text-center"
-                >
-                  <option value="" disabled className="bg-[#120726] text-purple-400">
-                    วัน
-                  </option>
-                  {days.map((d) => (
-                    <option key={d} value={d} className="bg-[#120726] text-white">
-                      วันที่ {parseInt(d, 10)}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-400">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              <SelectDropdown
+                value={selectedDay}
+                onValueChange={(val) =>
+                  handleDateChange(val, selectedMonth, selectedYear)
+                }
+                placeholder="วัน"
+                options={dayOptions}
+                ariaLabel="เลือกวันที่เกิด"
+              />
 
               {/* Month Select */}
-              <div className="relative">
-                <select
-                  value={selectedMonth}
-                  onChange={(e) =>
-                    handleDateChange(selectedDay, e.target.value, selectedYear)
-                  }
-                  className="w-full px-3 py-3.5 rounded-xl bg-purple-950/70 border border-purple-700/50 text-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all text-xs sm:text-sm font-medium [color-scheme:dark] cursor-pointer appearance-none text-center"
-                >
-                  <option value="" disabled className="bg-[#120726] text-purple-400">
-                    เดือน
-                  </option>
-                  {THAI_MONTHS.map((m) => (
-                    <option key={m.value} value={m.value} className="bg-[#120726] text-white">
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-400">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              <SelectDropdown
+                value={selectedMonth}
+                onValueChange={(val) =>
+                  handleDateChange(selectedDay, val, selectedYear)
+                }
+                placeholder="เดือน"
+                options={monthOptions}
+                ariaLabel="เลือกเดือนเกิด"
+              />
 
-              {/* Year Select (พ.ศ. / ค.ศ.) */}
-              <div className="relative">
-                <select
-                  value={selectedYear}
-                  onChange={(e) =>
-                    handleDateChange(selectedDay, selectedMonth, e.target.value)
-                  }
-                  className="w-full px-3 py-3.5 rounded-xl bg-purple-950/70 border border-purple-700/50 text-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all text-xs sm:text-sm font-medium [color-scheme:dark] cursor-pointer appearance-none text-center"
-                >
-                  <option value="" disabled className="bg-[#120726] text-purple-400">
-                    ปี พ.ศ.
-                  </option>
-                  {years.map((y) => (
-                    <option key={y} value={String(y)} className="bg-[#120726] text-white">
-                      พ.ศ. {y + 543} ({y})
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-400">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              {/* Year Select (พ.ศ.) */}
+              <SelectDropdown
+                value={selectedYear}
+                onValueChange={(val) =>
+                  handleDateChange(selectedDay, selectedMonth, val)
+                }
+                placeholder="ปี พ.ศ."
+                options={yearOptions}
+                ariaLabel="เลือกปีเกิด"
+              />
             </div>
 
             {/* Zodiac Preview Card */}
